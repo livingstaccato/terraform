@@ -133,3 +133,20 @@ Feature: Formatting cty.Value for Diagnostics
     ]
     """
     And the JSON string should be indented with 2 spaces
+
+  Scenario Outline: Formatting hcl.Traversal to a string
+    Given an hcl.Traversal defined by the following steps: <Steps>
+    When TraversalStr is called with this traversal
+    Then the result should be "<ExpectedTraversalString>"
+
+    Examples:
+      | Steps                                                                    | ExpectedTraversalString |
+      | [{"type": "Root", "name": "var"}]                                        | var                     |
+      | [{"type": "Root", "name": "local"}, {"type": "Attr", "name": "service"}] | local.service           |
+      | [{"type": "Root", "name": "resource"}, {"type": "Attr", "name": "aws_instance"}, {"type": "Attr", "name": "example"}, {"type": "Index", "key_type": "String", "key_value": "my_key"}] | resource.aws_instance.example["my_key"] |
+      | [{"type": "Root", "name": "module"}, {"type": "Attr", "name": "network"}, {"type": "Index", "key_type": "Number", "key_value": "0"}] | module.network[0]       |
+      | [{"type": "Root", "name": "data"}, {"type": "Attr", "name": "source"}, {"type": "Index", "key_type": "Number", "key_value": "1"}, {"type": "Attr", "name": "attribute"}] | data.source[1].attribute |
+      | [{"type": "Root", "name": "var"}, {"type": "Attr", "name": "list"}, {"type": "Index", "key_type": "Number", "key_value": "0"}, {"type": "Index", "key_type": "String", "key_value": "name"}] | var.list[0]["name"]     |
+      | [{"type": "Root", "name": "foo"}, {"type": "Index", "key_type": "Object", "key_value": "{}"}] | foo[...]                |
+      | [{"type": "Root", "name": "bar"}, {"type": "Index", "key_type": "List", "key_value": "[]"}]   | bar[...]                |
+      | []                                                                       |                         |

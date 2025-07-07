@@ -50,4 +50,28 @@ Feature: Comparing Terraform Diagnostics
     And diagnostic2 is an AttributeValue diagnostic with severity "ERROR", summary "summary", detail "detail"
     And diagnostic2 has a cty.Path with a GetAttrStep "data" then GetAttrStep "source"
     When diagnostic1 and diagnostic2 are compared using DiagnosticComparer
-    Then no difference should be detected (assuming underlying Equals method for attributeDiagnostic compares paths correctly)
+    Then no difference should be detected
+
+  Scenario: Diagnostics with different concrete types do not match
+    Given diagnostic1 is an hclDiagnostic based on the base diagnostic
+    And diagnostic2 is an rpcFriendlyDiagnostic based on the base diagnostic (same content, different type)
+    When diagnostic1 and diagnostic2 are compared using DiagnosticComparer
+    Then a difference should be detected
+
+  Scenario: Diagnostics with different severities do not match
+    Given diagnostic1 is an hclDiagnostic based on the base diagnostic with severity "ERROR"
+    And diagnostic2 is an hclDiagnostic based on the base diagnostic but with severity "WARNING"
+    When diagnostic1 and diagnostic2 are compared using DiagnosticComparer
+    Then a difference should be detected
+
+  Scenario: Diagnostics with different summaries do not match
+    Given diagnostic1 is an hclDiagnostic based on the base diagnostic with summary "error"
+    And diagnostic2 is an hclDiagnostic based on the base diagnostic but with summary "different error"
+    When diagnostic1 and diagnostic2 are compared using DiagnosticComparer
+    Then a difference should be detected
+
+  Scenario: Diagnostics with different details do not match
+    Given diagnostic1 is an hclDiagnostic based on the base diagnostic with detail "this is an error"
+    And diagnostic2 is an hclDiagnostic based on the base diagnostic but with detail "this is a different error"
+    When diagnostic1 and diagnostic2 are compared using DiagnosticComparer
+    Then a difference should be detected
